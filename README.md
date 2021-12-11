@@ -19,11 +19,32 @@ If you know more about WSUS or SQL than I do and know how to improve one of thes
 * Decline x86 updates as unused
 * Decline all superseded updates as the new (probably cumulative) version can be installed
 * Reindex the WSUS database
+* Only approve updates that are actually required
 
 ## Initial configuration
 
 * Only select products that actually appear in the environment. Windows 7 and 8 should no longer exist.
-* Configure the recommended IIS settings from the best practices
+* Configure the recommended IIS settings from the best practices. Microsoft recommend unlimited Memory on the IIS pool. This seems like a bad idea if using SQL or WID on the same server as IIS.
 * Install the custom indexes from the WSUS maintenance guide
 * Reindex after initial synchronisation
 * Sync daily at close of play
+
+## WID connection
+DO NOT ALTER THE SCHEMA IN ANY WAY WHEN USING WID. DO NOT CREATE DIAGRAMING OBJECTS OR ANY OTHER NEW OBJECTS
+
+SSMS needs to be open as an Admin
+
+Database Engine 
+```
+\\.\pipe\MICROSOFT##WID\tsql\query
+```
+
+## Links
+
+* [CLR Types](http://go.microsoft.com/fwlink/?LinkID=239644&clcid=0x409)
+* [Report Viewer](https://www.microsoft.com/en-us/download/details.aspx?id=35747)
+
+
+## Observations
+
+* SUSDB should be on solid state storage
