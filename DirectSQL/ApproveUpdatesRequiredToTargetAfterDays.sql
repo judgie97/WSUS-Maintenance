@@ -15,7 +15,7 @@ declare @Import table (rownum int IDENTITY (1, 1) Primary key NOT NULL , UpdateI
 insert into @Import (UpdateId, RevisionNumber) SELECT [a].[UpdateId] AS UpdateId, [v].[RevisionNumber] As RevisionNumber
 FROM (SELECT [UpdateId]
   FROM [SUSDB].[dbo].[tbUpdateSummaryForAllComputers] s INNER JOIN [SUSDB].[dbo].[tbUpdate] u ON s.LocalUpdateID = u.LocalUpdateID
-  WHERE s.NotInstalled > 0 OR s.Downloaded > 0 OR s.Installed > 0 OR s.InstalledPendingReboot > 0 OR s.FAILED > 0 OR s.UNKNOWN > 0) a 
+  WHERE s.NotInstalled > 0 OR s.Downloaded > 0 OR s.Installed > 0 OR s.InstalledPendingReboot > 0 OR s.FAILED > 0) a 
   INNER JOIN [SUSDB].[PUBLIC_VIEWS].[vUpdate] v ON a.UpdateID = v.UpdateId
   WHERE v.IsDeclined = 0 AND ArrivalDate < DATEADD(day, -3, GETDATE())
 

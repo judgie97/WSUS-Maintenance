@@ -17,7 +17,7 @@ insert into @Import (UpdateId) select UpdateId from (SELECT [UT].[UpdateId] AS [
       ,[Description]
 	  ,[U].[IsDeclined]
   FROM [SUSDB].[PUBLIC_VIEWS].[vUpdateText] UT INNER JOIN [SUSDB].[PUBLIC_VIEWS].[vUpdate] U ON UT.UpdateId = U.UpdateId
-  WHERE LocaleId = 1033 AND Title LIKE '%x86-based%' OR Title LIKE '%x86 Client%' AND IsDeclined = 0) a
+  WHERE (Title LIKE '%x86-based%' OR Title LIKE '%x86 Client%' OR Title LIKE '% for X86 %') AND IsDeclined = 0) a
 
 select @MaxRows=count(*) from @Import
 
