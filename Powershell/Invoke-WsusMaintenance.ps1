@@ -407,7 +407,7 @@ function Invoke-InitialWsusMaintenance {
     #Create Hourly Task
     $principal = New-ScheduledTaskPrincipal -UserID "NT AUTHORITY\SYSTEM" -LogonType ServiceAccount -RunLevel Highest
 
-    $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date) -RepetitionInterval (New-TimeSpan -Minutes 31) -RepetitionDuration ([System.TimeSpan]::MaxValue)
+    $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date) -RepetitionInterval (New-TimeSpan -Minutes 31) -RepetitionDuration (New-TimeSpan -Days (20 * 365))
 
     $action = New-ScheduledTaskAction -Execute 'Powershell.exe' -Argument '-File C:\Scripts\Invoke-WsusMaintenance.ps1 -Action Automatic'
     Register-ScheduledTask -Action $action -Trigger $trigger -TaskName "WSUS Maintenance Weekly" -Description "Runs weekly Wsus cleanup and reindex" -Principal $principal
@@ -471,9 +471,9 @@ $TestComputersGroup = 'B73CA6ED-5727-47F3-84DE-015E03F6A88A'
 function Invoke-AutomaticWsusMaintenance {
     Push-Location
     Set-Location HKLM:
-    $NextWeeklyRun = ([Datetime](Get-ItemProperty -Path .\SOFTWARE\WSUSMaintenance\).LastWeeklyRun).AddDays(7)
-    $NextDailyRun = ([Datetime](Get-ItemProperty -Path .\SOFTWARE\WSUSMaintenance\).LastDailyRun).AddDays(1)
-    $NextHourlyRun = ([Datetime](Get-ItemProperty -Path .\SOFTWARE\WSUSMaintenance\).LastHourlyRun).AddHours(1)
+    $NextWeeklyRun = ([Datetime]::Parse((Get-ItemProperty -Path .\SOFTWARE\WSUSMaintenance\).LastWeeklyRun)).AddDays(7)
+    $NextDailyRun = ([Datetime]::Parse((Get-ItemProperty -Path .\SOFTWARE\WSUSMaintenance\).LastDailyRun)).AddDays(1)
+    $NextHourlyRun = ([Datetime]::Parse((Get-ItemProperty -Path .\SOFTWARE\WSUSMaintenance\).LastHourlyRun)).AddHours(1)
     Pop-Location
 
     $TimeNow = Get-Date
