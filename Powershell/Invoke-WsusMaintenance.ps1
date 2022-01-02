@@ -9,7 +9,7 @@ function Get-DaysSincePatchTuesday {
     $now = Get-Date
     $firstDayOfMonth = Get-Date -Day 1 -Month $($now.Month) -Year $now.Year
 
-    switch ($d0.DayOfWeek) {
+    switch ($firstDayOfMonth.DayOfWeek) {
         "Sunday"    {$thisMonthPT = $firstDayOfMonth.AddDays(9); break}
         "Monday"    {$thisMonthPT = $firstDayOfMonth.AddDays(8); break}
         "Tuesday"   {$thisMonthPT = $firstDayOfMonth.AddDays(7); break}
@@ -21,7 +21,7 @@ function Get-DaysSincePatchTuesday {
 
     $firstDayOfLastMonth = Get-Date -Day 1 -Month $($now.AddMonths(-1).Month) -Year $now.AddMonths(-1).Year
 
-    switch ($d1.DayOfWeek) {
+    switch ($firstDayOfLastMonth.DayOfWeek) {
         "Sunday"    {$lastMonthPT = $firstDayOfLastMonth.AddDays(9); break}
         "Monday"    {$lastMonthPT = $firstDayOfLastMonth.AddDays(8); break}
         "Tuesday"   {$lastMonthPT = $firstDayOfLastMonth.AddDays(7); break}
@@ -69,7 +69,6 @@ function Invoke-DatabaseReindex {
     $cmd.CommandText = 
 @"
 USE SUSDB; 
-GO 
 SET NOCOUNT ON; 
  
 -- Rebuild or reorganize indexes based on their fragmentation levels 
@@ -178,14 +177,12 @@ BEGIN
  
     PRINT 'Estimated number of pages freed: ' + cast(@numpages as nvarchar(20)) 
 END 
-GO 
  
  
 --Update all statistics 
 PRINT 'Updating all statistics.' + convert(nvarchar, getdate(), 121)  
 EXEC sp_updatestats 
 PRINT 'Done updating statistics.' + convert(nvarchar, getdate(), 121)  
-GO
 "@
     $cmd.ExecuteNonQuery()
     $conn.Close()
@@ -197,7 +194,6 @@ function Invoke-DeclineArmUpdates {
     $cmd.CommandText = 
 @"
 USE [SUSDB]
-GO
 
 declare @Proc nvarchar(50)
 declare @RowCnt int
@@ -237,7 +233,6 @@ function Invoke-DeclineX86Updates {
     $cmd.CommandText = 
 @"
 USE [SUSDB]
-GO
 
 declare @Proc nvarchar(50)
 declare @RowCnt int
@@ -277,7 +272,6 @@ function Invoke-DeclineOldDriverUpdates {
     $cmd.CommandText = 
 @"
 USE [SUSDB]
-GO
 
 declare @Proc nvarchar(50)
 declare @RowCnt int
@@ -313,7 +307,6 @@ function Invoke-DeclineSupersededUpdates {
     $cmd.CommandText = 
 @"
 USE [SUSDB]
-GO
 
 declare @Proc nvarchar(50)
 declare @RowCnt int
@@ -354,7 +347,6 @@ param (
     $cmd = $conn.CreateCommand()
 $first = @"
 USE [SUSDB]
-GO
 
 declare @TargetGroup uniqueidentifier
 "@
@@ -415,11 +407,12 @@ function Invoke-InitialWsusMaintenance {
 
     #Setup the registry keys for the maintenance
     Push-Location
-    Set-Location HKCU:
+    Set-Location HKLM:
     New-Item -Path .\SOFTWARE -Name WSUSMaintenance
     Get-Item -Path .\SOFTWARE\WSUSMaintenance   | Set-ItemProperty -Name LastWeeklyRun -Value (Get-Date).ToString()
     Get-Item -Path .\SOFTWARE\WSUSMaintenance   | Set-ItemProperty -Name LastDailyRun -Value (Get-Date).ToString()
     Get-Item -Path .\SOFTWARE\WSUSMaintenance   | Set-ItemProperty -Name LastHourlyRun -Value (Get-Date).ToString()
+    Pop-Location
 }
 
 function Invoke-HourlyWsusMaintenance {
@@ -428,7 +421,10 @@ function Invoke-HourlyWsusMaintenance {
     Invoke-DeclineSupersededUpdates
     Invoke-DeclineOldDriverUpdates
 
+    Push-Location
+    Set-Location HKLM:
     Get-Item -Path .\SOFTWARE\WSUSMaintenance   | Set-ItemProperty -Name LastHourlyRun -Value (Get-Date).ToString()
+    Pop-Location
 }
 
 function Invoke-DailyWsusMaintenance {
@@ -443,14 +439,20 @@ function Invoke-DailyWsusMaintenance {
         Invoke-ApproveUpdatesToTargetGroup -Target $AllComputersGroup
     }
 
+    Push-Location
+    Set-Location HKLM:
     Get-Item -Path .\SOFTWARE\WSUSMaintenance   | Set-ItemProperty -Name LastDailyRun -Value (Get-Date).ToString()
+    Pop-Location
 }
 
 function Invoke-WeeklyWsusMaintenance {
     Invoke-DatabaseReindex
     Invoke-WsusCleanupTool
 
+    Push-Location
+    Set-Location HKLM:
     Get-Item -Path .\SOFTWARE\WSUSMaintenance   | Set-ItemProperty -Name LastWeeklyRun -Value (Get-Date).ToString()
+    Pop-Location
 }
 
 $sqlConn = 'server=\\.\pipe\MICROSOFT##WID\tsql\query;database=susdb;trusted_connection=true;'
@@ -460,9 +462,12 @@ $TestComputersGroup = 'B73CA6ED-5727-47F3-84DE-015E03F6A88A'
 
 
 function Invoke-AutomaticWsusMaintenance {
+    Push-Location
+    Set-Location HKLM:
     $NextWeeklyRun = ([Datetime](Get-ItemProperty -Path .\SOFTWARE\WSUSMaintenance\).LastWeeklyRun).AddDays(7)
     $NextDailyRun = ([Datetime](Get-ItemProperty -Path .\SOFTWARE\WSUSMaintenance\).LastDailyRun).AddDays(1)
     $NextHourlyRun = ([Datetime](Get-ItemProperty -Path .\SOFTWARE\WSUSMaintenance\).LastHourlyRun).AddHours(1)
+    Pop-Location
 
     $TimeNow = Get-Date
 
