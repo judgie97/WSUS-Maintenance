@@ -59,6 +59,7 @@ CREATE NONCLUSTERED INDEX [nclSupercededUpdateID] ON [dbo].[tbRevisionSupersedes
         [SupersededUpdateID] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 "@
+    $cmd.CommandTimeout = 3600    
     $cmd.ExecuteNonQuery()
     $conn.Close()
 }
@@ -184,6 +185,7 @@ PRINT 'Updating all statistics.' + convert(nvarchar, getdate(), 121)
 EXEC sp_updatestats 
 PRINT 'Done updating statistics.' + convert(nvarchar, getdate(), 121)  
 "@
+    $cmd.CommandTimeout = 259200   
     $cmd.ExecuteNonQuery()
     $conn.Close()
 }
@@ -223,6 +225,7 @@ begin
     Select @RowCnt = @RowCnt + 1
 end
 "@
+    $cmd.CommandTimeout = 3600    
     $cmd.ExecuteNonQuery()
     $conn.Close()
 }
@@ -262,6 +265,7 @@ begin
     Select @RowCnt = @RowCnt + 1
 end
 "@
+    $cmd.CommandTimeout = 3600    
     $cmd.ExecuteNonQuery()
     $conn.Close()
 }
@@ -297,6 +301,7 @@ begin
     Select @RowCnt = @RowCnt + 1
 end
 "@
+    $cmd.CommandTimeout = 3600    
     $cmd.ExecuteNonQuery()
     $conn.Close()
 }
@@ -334,6 +339,7 @@ begin
     Select @RowCnt = @RowCnt + 1
 end
 "@
+    $cmd.CommandTimeout = 3600
     $cmd.ExecuteNonQuery()
     $conn.Close()
 }
@@ -380,6 +386,7 @@ end
 "@
 
     $cmd.CommandText = $first + $second + $third
+    $cmd.CommandTimeout = 3600
     $cmd.ExecuteNonQuery()
     $conn.Close()
 }
